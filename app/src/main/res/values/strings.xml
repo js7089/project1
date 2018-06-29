@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">project1</string>
+    <string name="app_name">test1</string>
+    <string name="button">Button</string>
+    <string name="button9">Button2</string>
+    <string name="phone_number">phone number</string>
+    <string name="gallery">gallery</string>
+    <string name="phone">phone</string>
 </resources>
