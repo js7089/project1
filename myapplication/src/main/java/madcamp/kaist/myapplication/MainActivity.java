@@ -26,6 +26,24 @@ import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity {
 
+    private void getContacts(){
+        Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
+        TextView pnums = (TextView) findViewById(R.id.PNoList);
+        String tmp = "";
+        while (phones.moveToNext())
+        {
+            String name=phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+            String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            tmp += name;
+            tmp += "  ";
+            tmp += phoneNumber;
+            tmp += "\n";
+        }
+        pnums.setText(tmp);
+
+        phones.close();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,33 +54,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
                 // Here, thisActivity is the current activity
-                if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                        Manifest.permission.READ_CONTACTS)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                            Manifest.permission.READ_CONTACTS)) {
-                        Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
-                        TextView pnums = (TextView) findViewById(R.id.PNoList);
-                        String tmp = "";
-                        while (phones.moveToNext())
-                        {
-                            String name=phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                            String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            tmp += name;
-                            tmp += "  ";
-                            tmp += phoneNumber;
-                            tmp += "\n";
-                        }
-                        pnums.setText(tmp);
-
-                        phones.close();
+                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    //Toast.makeText(getApplicationContext(),"권한이 필요합니다",LENGTH_LONG).show();
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_CONTACTS)) {
+                        getContacts();
                     } else {
                         ActivityCompat.requestPermissions(MainActivity.this,
                                 new String[]{Manifest.permission.READ_CONTACTS},
                                 MY_PERMISSIONS_REQUEST_READ_CONTACTS);
                     }
+                }
+                else{
+                    getContacts();
                 }
 
 
