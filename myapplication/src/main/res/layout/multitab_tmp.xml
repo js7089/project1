@@ -1,20 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout android:id="@+id/content20"
+<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content20"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
 
-    <ListView
-        android:id="@+id/mylist"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
-        android:layout_height="247dp" />
-    <Button
-        android:id="@+id/load_pno"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="연락처 가져오기"
-        />
+        android:text="RUSSIAN RULLET"
+        android:textSize="30dp" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal">
+
+            <ImageView
+                android:id="@+id/imgkilled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                app:srcCompat="@drawable/shoot" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/numofpeople"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:ems="10"
+                android:hint="인원 수 입력"
+                android:inputType="number"
+                android:textAlignment="center" />
+
+            <EditText
+                android:id="@+id/numofbullets"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:ems="10"
+                android:hint="총알 수"
+                android:inputType="number"
+                android:textAlignment="center" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <Button
+                android:id="@+id/btnstart"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="START!" />
+        </TableRow>
+
+        <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+            <Button
+                android:id="@+id/btnreset"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.3"
+                android:text="RESTART"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/btnshoot"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/btngo" />
+
+        </TableRow>
+
+
+
+    </TableLayout>
 
 </LinearLayout>

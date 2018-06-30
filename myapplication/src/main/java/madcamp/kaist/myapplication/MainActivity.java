@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -35,13 +37,24 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static android.widget.Toast.LENGTH_LONG;
+import static android.widget.Toast.LENGTH_SHORT;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    // Local Variables for part 3
+    private Set<Integer> set = new HashSet<>();
+    private int turns = 0;
+    private int Nbullet, Npeople, victim;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
@@ -286,6 +299,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     //
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -327,12 +342,94 @@ public class MainActivity extends AppCompatActivity {
         tabHost.addTab(ts2);
         final TabHost.TabSpec ts3 = tabHost.newTabSpec("TabSpec3") ;
         ts3.setContent(R.id.content3) ;
-        ts3.setIndicator("무엇이될까");
+        ts3.setIndicator("러시안 룰렛");
         tabHost.addTab(ts3);
         tabHost.setCurrentTab(0);
 
-        Button btn_load = (Button) findViewById(R.id.load_pno);
+        Button btn_load = (Button) findViewById(R.id.load_pno); // 전화번호부 로드 버튼
         btn_load.setOnClickListener(load_btn_action);
+
+        final Button rullet_start = (Button) findViewById(R.id.btnstart);
+        final ImageView rullet_shoot = (ImageView) findViewById(R.id.btnshoot);
+        final Button rullet_reset = (Button) findViewById(R.id.btnreset);
+        final EditText numofbullets = (EditText) findViewById(R.id.numofbullets);
+        final EditText numofpeople = (EditText) findViewById(R.id.numofpeople);
+        final ImageView rulletkilled = (ImageView) findViewById(R.id.imgkilled);
+        final TextView contextview = (TextView) findViewById(R.id.rullet_context);
+
+
+        // rullet start 버튼 리스너
+        View.OnClickListener rulletstartaction = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(numofbullets.getText().toString().equals("") || numofpeople.getText().toString().equals("")){
+                    Toast.makeText(getApplicationContext(),"빈 칸을 모두 입력해 주세요.",LENGTH_SHORT).show();
+                }
+                else if(Integer.parseInt(numofbullets.getText().toString()) >= Integer.parseInt(numofpeople.getText().toString())){
+                    Toast.makeText(getApplicationContext(),"총알의 수는 사람 수보다 적게 설정해야 합니다!",LENGTH_SHORT).show();
+                }
+                else{ // 룰렛 로직 시작.
+                    rullet_shoot.setVisibility(View.VISIBLE);
+                    Npeople = Integer.parseInt(numofpeople.getText().toString());
+                    Nbullet = Integer.parseInt(numofbullets.getText().toString());
+                    numofpeople.setEnabled(false);
+                    numofbullets.setEnabled(false);
+                    rullet_start.setEnabled(false);
+                    rullet_shoot.setEnabled(true);
+                    rullet_reset.setEnabled(true);
+                    turns = 0;
+                    set.clear();
+                    while(set.size()<Nbullet){
+                        set.add( (int) Math.floor((Math.random()*Npeople))  +1);
+                    }
+
+                }
+            }
+        };
+        rullet_start.setOnClickListener(rulletstartaction);
+
+        View.OnClickListener rulletshootaction = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                turns+=1;
+                Toast.makeText(getApplicationContext(),String.valueOf(turns)+"th person",LENGTH_SHORT).show(); // debug
+                if(set.contains(turns)){
+                    Toast.makeText(getApplicationContext(),"탕탕탕탕탕탕탕!", LENGTH_SHORT).show();
+                    rulletkilled.setVisibility(View.VISIBLE);
+                    victim +=1;
+                }
+                else{
+                    rulletkilled.setVisibility(View.INVISIBLE);
+                }
+                contextview.setText("남은 인원 수 : " + String.valueOf(Npeople-turns) + " / 남은 총알 수 : " + String.valueOf(Nbullet-victim));
+                if(Nbullet == victim){
+                    rullet_shoot.setEnabled(false);
+                    rullet_reset.setVisibility(View.VISIBLE);
+                }
+            }
+        };
+        rullet_shoot.setOnClickListener(rulletshootaction);
+
+        View.OnClickListener rulletresetaction = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rullet_shoot.setVisibility(View.INVISIBLE);
+                rullet_reset.setVisibility(View.INVISIBLE);
+                numofpeople.setText("");
+                numofbullets.setText("");
+                numofpeople.setEnabled(true);
+                numofbullets.setEnabled(true);
+                rullet_start.setEnabled(true);
+                rulletkilled.setVisibility(View.INVISIBLE);
+                Nbullet=0;
+                victim=0;
+                set.clear();
+                contextview.setText("");
+            }
+        };
+        rullet_reset.setOnClickListener(rulletresetaction);
+
+
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String s) {
@@ -341,6 +438,20 @@ public class MainActivity extends AppCompatActivity {
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
                     galleryload();
+                } else if(ts3.getTag().equals(s)){
+                    // 룰렛 초기 조건
+                    // 숫자필드 둘, 시작버튼 하나 = 활성화&초기화
+                    rullet_shoot.setVisibility(View.INVISIBLE);
+                    rullet_reset.setVisibility(View.INVISIBLE);
+                    numofpeople.setText("");
+                    numofbullets.setText("");
+                    numofpeople.setEnabled(true);
+                    numofbullets.setEnabled(true);
+                    rullet_start.setEnabled(true);
+                    rulletkilled.setVisibility(View.INVISIBLE);
+                    Nbullet=0;
+                    victim=0;
+                    set.clear();
                 }
             }
         });
