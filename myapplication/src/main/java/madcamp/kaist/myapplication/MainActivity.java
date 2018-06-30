@@ -32,10 +32,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
-    private ListView listView = (ListView) findViewById(R.id.mylist);
+    private ListView listView;
 
     private void getContacts(){
         //데이터 초기화
+        listView =   (ListView) findViewById(R.id.mylist);
         Data.clear();
         Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
         while (phones.moveToNext())
@@ -63,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View view) {
-                //Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
                 // Here, thisActivity is the current activity
                 if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
                     //Toast.makeText(getApplicationContext(),"권한이 필요합니다",LENGTH_LONG).show();

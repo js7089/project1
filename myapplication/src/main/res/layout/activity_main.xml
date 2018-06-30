@@ -24,14 +24,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
-            <FrameLayout
-                android:id="@android:id/tabcontent"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+
 
                 <FrameLayout
                     android:id="@android:id/tabcontent"
-                    android:paddingTop="70sp"
+                    android:paddingTop="0dp"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
                     <LinearLayout
@@ -39,22 +36,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical">
+
+
                         <ListView
                             android:id="@+id/mylist"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+                            android:layout_height="400dp" />
                         <Button
                             android:id="@+id/load_pno"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="20dp"
-                            android:layout_marginEnd="20dp"
                             android:text="연락처 가져오기"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent" />
-
+                            android:layout_marginLeft="230dp"
+                            android:layout_marginStart="230dp"
+                            android:layout_marginBottom="0dp"/>
                     </LinearLayout>
                     <LinearLayout
                         android:id="@+id/content2"
@@ -80,7 +75,7 @@
                     </LinearLayout>
                 </FrameLayout>
 
-            </FrameLayout>
+
         </LinearLayout>
     </TabHost>
 </RelativeLayout>
