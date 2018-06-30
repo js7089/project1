@@ -6,10 +6,14 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.media.Image;
 import android.net.Uri;
@@ -279,54 +283,59 @@ public class MainActivity extends AppCompatActivity {
             }
 
         } catch (Exception e) {
-            Toast.makeText(this, "Oops! 로딩에 오류가 있습니다.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "권한이 필요합니다.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
 
     }
-
-    //
-
     private void galleryload(){
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
         intent.setType("image/*"); //이미지만 보이게
         //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);//
     }
-
-
-
-
-
-    //
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        Resources res = getResources();
+        final Drawable dead = res.getDrawable(R.drawable.dead);
+        final Bitmap live = BitmapFactory.decodeResource(res,R.drawable.live);
 
         View.OnClickListener load_btn_action = new View.OnClickListener(){
             public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
 
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
-                // Here, thisActivity is the current activity
-                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                    //Toast.makeText(getApplicationContext(),"권한이 필요합니다",LENGTH_LONG).show();
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_CONTACTS)) {
-                        getContacts();
-                    } else {
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{Manifest.permission.READ_CONTACTS},
-                                MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-                    }
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                try{
+                    getContacts();
+                    Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
                 }
-                else{
+                catch (Exception e) {
+                    //Toast.makeText(getApplicationContext(), "권한이 필요합니다.", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
+                /*
+                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                }else{
+                    Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
                     getContacts();
                 }
+                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
+                    getContacts();
+                }
+                */
+
             }
+
         };
 
         // 레거시
@@ -392,7 +401,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 turns+=1;
-                Toast.makeText(getApplicationContext(),String.valueOf(turns)+"th person",LENGTH_SHORT).show(); // debug
                 if(set.contains(turns)){
                     Toast.makeText(getApplicationContext(),"탕탕탕탕탕탕탕!", LENGTH_SHORT).show();
                     rulletkilled.setVisibility(View.VISIBLE);
@@ -429,6 +437,16 @@ public class MainActivity extends AppCompatActivity {
         };
         rullet_reset.setOnClickListener(rulletresetaction);
 
+        Button btn_pic_load = (Button) findViewById(R.id.buttonLoadPic);
+        btn_pic_load.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                galleryload();
+            }
+        });
 
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override

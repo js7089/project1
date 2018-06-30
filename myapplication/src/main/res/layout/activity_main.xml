@@ -70,7 +70,6 @@
                             android:layout_gravity="center"
                             android:layout_weight="0"
                             android:layout_below="@+id/imageView"
-                            android:onClick="loadImagefromGallery"
                             android:text="갤러리 목록으로"/>
                     </LinearLayout>
                     <LinearLayout
@@ -91,13 +90,16 @@
                             <TableRow
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:gravity="center_horizontal">
+                                android:gravity="center_horizontal"
+                                android:background="@drawable/shoot"
+                                >
+
                                 <ImageView
                                     android:id="@+id/imgkilled"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:visibility="invisible"
-                                    app:srcCompat="@drawable/shoot" />
+                                    app:srcCompat="@drawable/dead" />
                             </TableRow>
                             <TableRow
                                 android:layout_width="match_parent"
