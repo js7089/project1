@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.media.Image;
@@ -52,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     // Local Variables for part 3
+    final Bitmap live = BitmapFactory.decodeResource(getResources(), R.drawable.live);
+    final Bitmap dead = BitmapFactory.decodeResource(getResources(), R.drawable.dead);
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
     private int Nbullet, Npeople, victim;
@@ -392,14 +395,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 turns+=1;
-                Toast.makeText(getApplicationContext(),String.valueOf(turns)+"th person",LENGTH_SHORT).show(); // debug
                 if(set.contains(turns)){
                     Toast.makeText(getApplicationContext(),"탕탕탕탕탕탕탕!", LENGTH_SHORT).show();
-                    rulletkilled.setVisibility(View.VISIBLE);
+                    rulletkilled.setImageBitmap(dead);
                     victim +=1;
                 }
                 else{
-                    rulletkilled.setVisibility(View.INVISIBLE);
+                    rulletkilled.setImageBitmap(live);
                 }
                 contextview.setText("남은 인원 수 : " + String.valueOf(Npeople-turns) + " / 남은 총알 수 : " + String.valueOf(Nbullet-victim));
                 if(Nbullet == victim){
@@ -420,7 +422,7 @@ public class MainActivity extends AppCompatActivity {
                 numofpeople.setEnabled(true);
                 numofbullets.setEnabled(true);
                 rullet_start.setEnabled(true);
-                rulletkilled.setVisibility(View.INVISIBLE);
+                rulletkilled.setImageBitmap(live);
                 Nbullet=0;
                 victim=0;
                 set.clear();
@@ -448,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
                     numofpeople.setEnabled(true);
                     numofbullets.setEnabled(true);
                     rullet_start.setEnabled(true);
-                    rulletkilled.setVisibility(View.INVISIBLE);
+                    rulletkilled.setImageBitmap(live);
                     Nbullet=0;
                     victim=0;
                     set.clear();
