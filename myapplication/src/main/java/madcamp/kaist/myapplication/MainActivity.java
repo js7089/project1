@@ -4,8 +4,12 @@ import android.Manifest;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -22,6 +26,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TabHost;
@@ -36,6 +41,7 @@ import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
     private ListView listView;
@@ -191,6 +197,84 @@ public class MainActivity extends AppCompatActivity {
     public static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
+    //로드버튼 클릭시 실행
+    public void loadImagefromGallery(View view) {
+        //Intent 생성
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
+        intent.setType("image/*"); //이미지만 보이게
+        //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);//
+    }
+
+    private int exifOrientationToDegrees(int exifOrientation) {
+        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
+            return 90;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
+            return 180;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
+            return 270;
+        }
+        return 0;
+    }
+    private Bitmap rotate(Bitmap src, float degree) {
+
+        // Matrix 객체 생성
+        Matrix matrix = new Matrix();
+        // 회전 각도 셋팅
+        matrix.postRotate(degree);
+        // 이미지와 Matrix 를 셋팅해서 Bitmap 객체 생성
+        return Bitmap.createBitmap(src, 0, 0, src.getWidth(),
+                src.getHeight(), matrix, true);
+    }
+
+    //이미지 선택작업을 후의 결과 처리
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            //이미지를 하나 골랐을때
+            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
+                //data에서 절대경로로 이미지를 가져옴
+
+                Uri uri = data.getData();
+                String path_abs = getPath(getApplicationContext(),uri);
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
+                //
+                ExifInterface exif = new ExifInterface(path_abs);
+                int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                //Toast.makeText(getApplicationContext(),valueOf(exifOrientationToDegrees(exifOrientation)),Toast.LENGTH_LONG);
+                int exifDegree = exifOrientationToDegrees(exifOrientation);
+                bitmap= rotate(bitmap, exifDegree);
+                //
+
+                //이미지가 한계이상(?) 크면 불러 오지 못하므로 사이즈를 줄여 준다.
+                int nh = (int) (bitmap.getHeight() * (1024.0 / bitmap.getWidth()));
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 1024, nh, true);
+
+
+
+                imgView = (ImageView) findViewById(R.id.imageView);
+                imgView.setImageBitmap(scaled);
+
+            } else {
+                Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_LONG).show();
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Oops! 로딩에 오류가 있습니다.", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+
+    }
+
+    //
+
+    private void galleryload(){
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
+        intent.setType("image/*"); //이미지만 보이게
+        //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);//
+    }
+
 
 
 
@@ -232,6 +316,10 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+
+        //
+
+        //
         // 레거시
         final TabHost tabHost = (TabHost) findViewById(R.id.tabHost1);
         tabHost.setup();
