@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,25 +32,24 @@ public class MainActivity extends AppCompatActivity {
 
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
-    private HashMap<String,String> InputData1 = new HashMap<>();
-    private HashMap<String,String> InputData2 = new HashMap<>();
     private ListView listView = (ListView) findViewById(R.id.mylist);
 
     private void getContacts(){
+        //데이터 초기화
+        Data.clear();
         Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
-        TextView pnums = (TextView) findViewById(R.id.PNoList);
-        String tmp = "";
         while (phones.moveToNext())
         {
+            HashMap<String,String> element = new HashMap<>();
             String name=phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
             String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            tmp += name;
-            tmp += "  ";
-            tmp += phoneNumber;
-            tmp += "\n";
-        }
-        pnums.setText(tmp);
 
+            element.put("name",name);
+            element.put("pNo",phoneNumber);
+            Data.add(element);
+        }
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this,Data,android.R.layout.simple_list_item_2,new String[]{"name","pNo"},new int[]{android.R.id.text1,android.R.id.text2});
+        listView.setAdapter(simpleAdapter);
         phones.close();
     }
 
