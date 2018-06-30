@@ -22,7 +22,7 @@ public class tabFragment2 extends AppCompatActivity {
     }
     public class ImageAdapter extends BaseAdapter {
         private Context context;
-        private Integer[] imag = {R.drawable.c, R.drawable.e, R.drawable.j, R.drawable.q};
+        private Integer[] imag = {};
 
         public ImageAdapter(Context con){
             this.context=con;
