@@ -1,6 +1,7 @@
 package madcamp.kaist.myapplication;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -78,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
      * @param uri The Uri to query.
      * @author paulburke
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static String getPath(final Context context, final Uri uri) {
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
@@ -228,6 +232,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //이미지 선택작업을 후의 결과 처리
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
@@ -252,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                imgView = (ImageView) findViewById(R.id.imageView);
+                ImageView imgView = (ImageView) findViewById(R.id.imageView);
                 imgView.setImageBitmap(scaled);
 
             } else {
@@ -305,33 +311,21 @@ public class MainActivity extends AppCompatActivity {
                 else{
                     getContacts();
                 }
-
-
-
-
-
-
-                //
-
             }
         };
 
-
-        //
-
-        //
         // 레거시
         final TabHost tabHost = (TabHost) findViewById(R.id.tabHost1);
         tabHost.setup();
-        TabHost.TabSpec ts1 = tabHost.newTabSpec("Tab Spec") ;
+        final TabHost.TabSpec ts1 = tabHost.newTabSpec("TabSpec") ;
         ts1.setContent(R.id.content1) ;
         ts1.setIndicator("전화번호부") ;
         tabHost.addTab(ts1);
-        TabHost.TabSpec ts2 = tabHost.newTabSpec("Tab Spec2") ;
+        final TabHost.TabSpec ts2 = tabHost.newTabSpec("TabSpec2") ;
         ts2.setContent(R.id.content2) ;
         ts2.setIndicator("갤러리") ;
         tabHost.addTab(ts2);
-        TabHost.TabSpec ts3 = tabHost.newTabSpec("Tab Spec3") ;
+        final TabHost.TabSpec ts3 = tabHost.newTabSpec("TabSpec3") ;
         ts3.setContent(R.id.content3) ;
         ts3.setIndicator("무엇이될까");
         tabHost.addTab(ts3);
@@ -339,7 +333,17 @@ public class MainActivity extends AppCompatActivity {
 
         Button btn_load = (Button) findViewById(R.id.load_pno);
         btn_load.setOnClickListener(load_btn_action);
-
+        tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+            @Override
+            public void onTabChanged(String s) {
+                if(ts2.getTag().equals(s)){
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    galleryload();
+                }
+            }
+        });
 
 
     }

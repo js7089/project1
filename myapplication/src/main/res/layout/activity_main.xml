@@ -56,11 +56,22 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical">
-                        <TextView
+                        <ImageView
+                            android:id="@+id/imageView"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:textSize="30sp"
-                            android:text="갤러리"/>
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            />
+
+                        <Button
+                            android:id="@+id/buttonLoadPic"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="0"
+                            android:layout_below="@+id/imageView"
+                            android:onClick="loadImagefromGallery"
+                            android:text="갤러리 목록으로"/>
                     </LinearLayout>
                     <LinearLayout
                         android:id="@+id/content3"
