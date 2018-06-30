@@ -16,15 +16,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Local Variables for part 1
+    private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
+    private HashMap<String,String> InputData1 = new HashMap<>();
+    private HashMap<String,String> InputData2 = new HashMap<>();
+    private ListView listView = (ListView) findViewById(R.id.mylist);
 
     private void getContacts(){
         Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
