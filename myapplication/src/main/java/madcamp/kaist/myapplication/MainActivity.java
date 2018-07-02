@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -16,6 +15,7 @@ import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.media.Image;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -31,18 +31,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.ViewGroup;
 
 import org.w3c.dom.Text;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,6 +59,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 public class MainActivity extends AppCompatActivity {
 
 
+    private static final int PICKFILE_REQUEST_CODE = 8777;
     // Local Variables for part 3
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
@@ -221,10 +226,10 @@ public class MainActivity extends AppCompatActivity {
     //로드버튼 클릭시 실행
     public void loadImagefromGallery(View view) {
         //Intent 생성
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*"); //이미지만 보이게
         //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);//
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
     }
 
     private int exifOrientationToDegrees(int exifOrientation) {
@@ -289,11 +294,42 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void galleryload(){
+        /*
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
         intent.setType("image/*"); //이미지만 보이게
         //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);//
+        startActivityForResult(intent, );//
+        //Intent.createChooser(intent, "Select Picture")
+        */
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+        startActivityForResult(intent, PICKFILE_REQUEST_CODE);
+
     }
+
+
+    // 갤러리 로드
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    public static final int MEDIA_TYPE_VIDEO = 2;
+    public int inSampleSize = 1;
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private Uri fileUri;
+    private static String basePath;
+
+    public float imageViewRotation = 90;
+    public String TAG = "Camera Example :: ";
+
+    private Button takePicBtn;
+    private ImageView resultView;
+    private TextView imgPath;
+    private Gallery customGallery;
+    private CustomGalleryAdapter customGalAdapter;
+
+    private String[] imgs;
+    //
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -302,9 +338,46 @@ public class MainActivity extends AppCompatActivity {
 
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        // App.을 실행하자 마자 지정한 경로의 생성 및 접근에 용이하도록 아래와 같이 생성
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+        // This location works best if you want the created images to be shared
+        // between applications and persist after your app has been uninstalled.
+
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                Log.d("MyCameraApp", "failed to create directory");
+//                return null;
+            }
+        }
+
+        basePath = "/storage/emulated/0/DCIM/CAMERA";
+
+        imgPath = (TextView)findViewById(R.id.imgpath);
+        resultView = (ImageView)findViewById(R.id.resultview);
+        takePicBtn = (Button)findViewById(R.id.takepicbtn);
+        // Button click시, Camera Intent를 불러 옴
+        takePicBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // create Intent to take a picture and return control to the calling application
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+                // start the image capture Intent
+                startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+            }
+        });
+
+
+
+
+
+
+        //
         Resources res = getResources();
-        final Drawable dead = res.getDrawable(R.drawable.dead);
-        final Bitmap live = BitmapFactory.decodeResource(res,R.drawable.live);
 
         View.OnClickListener load_btn_action = new View.OnClickListener(){
             public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
@@ -437,6 +510,7 @@ public class MainActivity extends AppCompatActivity {
         };
         rullet_reset.setOnClickListener(rulletresetaction);
 
+        /*
         Button btn_pic_load = (Button) findViewById(R.id.buttonLoadPic);
         btn_pic_load.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -447,6 +521,7 @@ public class MainActivity extends AppCompatActivity {
                 galleryload();
             }
         });
+        */
 
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
@@ -455,7 +530,31 @@ public class MainActivity extends AppCompatActivity {
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-                    galleryload();
+                    //galleryload();
+                    File file = new File(basePath);
+                    imgs = file.list();
+                    for(int i=0; i<imgs.length; i++){
+                        imgPath.setText(imgs[i]);
+                    }
+                    Toast.makeText(getApplicationContext(),basePath,LENGTH_LONG).show();
+
+                    customGallery = (Gallery)findViewById(R.id.customgallery); // activity_main.xml에서 선언한 Gallery를 연결
+                    customGalAdapter = new CustomGalleryAdapter(getApplicationContext(), basePath); // 위 Gallery에 대한 Adapter를 선언
+                    customGallery.setAdapter(customGalAdapter); // Gallery에 위 Adapter를 연결
+                    // Gallery의 Item을 Click할 경우 ImageView에 보여주도록 함
+                    customGallery.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position]);
+                            Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
+                            resultView.setImageBitmap(bm2);
+                            imgPath.setText(basePath+File.separator+imgs[position]);
+                        }
+                    });
+
+
+
+                    //
                 } else if(ts3.getTag().equals(s)){
                     // 룰렛 초기 조건
                     // 숫자필드 둘, 시작버튼 하나 = 활성화&초기화
@@ -473,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
 
 
     }
