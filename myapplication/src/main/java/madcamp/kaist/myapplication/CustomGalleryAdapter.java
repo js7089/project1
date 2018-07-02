@@ -4,22 +4,27 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
 import android.util.Log;
 import android.widget.BaseAdapter;
 import android.view.*;
 import android.widget.Gallery;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 
 import java.io.File;
+import java.io.IOException;
 
 public class CustomGalleryAdapter extends BaseAdapter {
     int CustomGalleryItemBg; // 앞서 정의해 둔 attrs.xml의 resource를 background로 받아올 변수 선언
     String mBasePath; // CustomGalleryAdapter를 선언할 때 지정 경로를 받아오기 위한 변수
     Context mContext; // CustomGalleryAdapter를 선언할 때 해당 activity의 context를 받아오기 위한 context 변수
-    String[] mImgs; // 위 mBasePath내의 file list를 String 배열로 저장받을 변수
+    String[] mImgs,newmImgs; // 위 mBasePath내의 file list를 String 배열로 저장받을 변수
     Bitmap bm; // 지정 경로의 사진을 Bitmap으로 받아오기 위한 변수
+
 
     public String TAG = "Gallery Adapter Example :: ";
 
@@ -35,6 +40,18 @@ public class CustomGalleryAdapter extends BaseAdapter {
         }
         mImgs = file.list(); // file.list() method를 통해 directory 내 file 명들을 String[] 에 저장
 
+        newmImgs = new String[mImgs.length-1];
+
+        int j=0;
+        for(String fname:mImgs){
+            if(!fname.equals(".AutoPortrait")){
+                Log.i("adapter_filelist_",String.valueOf(j) +"th element"+ fname);
+                newmImgs[j++] = fname;
+            }
+        }
+
+
+
         /* 앞서 정의한 attrs.xml에서 gallery array의 배경 style attribute를 받아옴 */
         TypedArray array = mContext.obtainStyledAttributes(R.styleable.GalleryTheme);
         CustomGalleryItemBg = array.getResourceId(R.styleable.GalleryTheme_android_galleryItemBackground, 0);
@@ -43,7 +60,7 @@ public class CustomGalleryAdapter extends BaseAdapter {
 
     @Override
     public int getCount() { // Gallery array의 객체 갯수를 앞서 세어 둔 file.list()를 받은 String[]의 원소 갯수와 동일하다는 가정 하에 반환
-        return mImgs.length;
+        return newmImgs.length;
     }
 
     @Override
@@ -92,10 +109,26 @@ public class CustomGalleryAdapter extends BaseAdapter {
         options.inJustDecodeBounds = false;
 
 
-        bm = BitmapFactory.decodeFile(mBasePath+ File.separator +mImgs[index], options);
+        bm = BitmapFactory.decodeFile(mBasePath+ File.separator +newmImgs[index], options);
+
+        try {
+            ExifInterface exif = new ExifInterface(mBasePath+File.separator + newmImgs[index] );
+            int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            //Toast.makeText(getApplicationContext(),valueOf(exifOrientationToDegrees(exifOrientation)),Toast.LENGTH_LONG);
+            int exifDegree = exifOrientationToDegrees(exifOrientation);
+            bm= rotate(bm, exifDegree);
+        } catch (IOException e) {
+            Toast.makeText(mContext,"로드 오류",Toast.LENGTH_SHORT);
+            e.printStackTrace();
+        }
+
+
         Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, 300, 300); // 크기가 큰 원본에서 image를 300*300 thumnail을 추출.
         // 이를 통해 view 가 까맣게 보이는 null 값을 피할 수 있었다.
         i.setLayoutParams(new Gallery.LayoutParams(300, 300));
+
+
+
         i.setImageBitmap(bm2);
         i.setVisibility(ImageView.VISIBLE);
 
@@ -107,4 +140,25 @@ public class CustomGalleryAdapter extends BaseAdapter {
         }
         return i;
     }
+    private int exifOrientationToDegrees(int exifOrientation) {
+        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
+            return 90;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
+            return 180;
+        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
+            return 270;
+        }
+        return 0;
+    }
+    private Bitmap rotate(Bitmap src, float degree) {
+
+        // Matrix 객체 생성
+        Matrix matrix = new Matrix();
+        // 회전 각도 셋팅
+        matrix.postRotate(degree);
+        // 이미지와 Matrix 를 셋팅해서 Bitmap 객체 생성
+        return Bitmap.createBitmap(src, 0, 0, src.getWidth(),
+                src.getHeight(), matrix, true);
+    }
+
 }

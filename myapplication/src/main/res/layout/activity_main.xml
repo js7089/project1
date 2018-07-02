@@ -56,34 +56,60 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:orientation="vertical">
-                        <TextView
-                            android:id="@+id/imgpath"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="TextView" />
-                        <!-- 지정한 경로 내의 사진들을 보여줄 Gallery 선언 -->
-                        <Gallery
-                            android:id="@+id/customgallery"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            >
-                        </Gallery>
 
-                        <ImageView
-                            android:id="@+id/resultview"
+                        <TableLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center_horizontal"
-                            android:layout_below="@id/customgallery" />
+                            android:layout_height="match_parent">
 
-                        <Button
-                            android:id="@+id/takepicbtn"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:gravity="center"
-                            android:padding="5dp"
-                            android:text="load Picture" />
+                            <TableRow
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent">
+                                <TextView
+                                    android:id="@+id/imgpath"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="0.5"
+                                    android:text="TextView" />
+
+                                <Button
+                                    android:id="@+id/load_album"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="0.5"
+                                    android:text="앨범 로드"
+                                    android:layout_margin="10dp"/>
+
+
+                            </TableRow>
+
+                            <TableRow
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent">
+                                <Gallery
+                                    android:id="@+id/customgallery"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    >
+                                </Gallery>
+
+                            </TableRow>
+                            <TableRow
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent">
+                                <ImageView
+                                    android:id="@+id/resultview"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:layout_margin="10dp"
+                                    android:layout_gravity="center_horizontal"
+                                    android:layout_below="@id/customgallery" />
+
+
+                            </TableRow>
+
+
+
+                        </TableLayout>
 
                     </LinearLayout>
                     <LinearLayout

@@ -47,6 +47,7 @@ import android.view.ViewGroup;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -223,14 +224,6 @@ public class MainActivity extends AppCompatActivity {
     public static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
-    //로드버튼 클릭시 실행
-    public void loadImagefromGallery(View view) {
-        //Intent 생성
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*"); //이미지만 보이게
-        //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
-    }
 
     private int exifOrientationToDegrees(int exifOrientation) {
         if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
@@ -356,27 +349,7 @@ public class MainActivity extends AppCompatActivity {
 
         imgPath = (TextView)findViewById(R.id.imgpath);
         resultView = (ImageView)findViewById(R.id.resultview);
-        takePicBtn = (Button)findViewById(R.id.takepicbtn);
-        // Button click시, Camera Intent를 불러 옴
-        takePicBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // create Intent to take a picture and return control to the calling application
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
-
-                // start the image capture Intent
-                startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-            }
-        });
-
-
-
-
-
-
-        //
         Resources res = getResources();
 
         View.OnClickListener load_btn_action = new View.OnClickListener(){
@@ -390,26 +363,21 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
                 }
                 catch (Exception e) {
-                    //Toast.makeText(getApplicationContext(), "권한이 필요합니다.", Toast.LENGTH_LONG).show();
                     e.printStackTrace();
                 }
-
-                /*
-                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-                }else{
-                    Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
-                    getContacts();
-                }
-                if (ContextCompat.checkSelfPermission(getApplicationContext(),Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED){
-                    Toast.makeText(getApplicationContext(),"전화번호를 로드합니다",LENGTH_LONG).show();
-                    getContacts();
-                }
-                */
+            }
+        };
+        // 앨범 로드 버튼
+        Button album_load = (Button) findViewById(R.id.load_album);
+        album_load.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
 
             }
+        });
 
-        };
+
+
 
         // 레거시
         final TabHost tabHost = (TabHost) findViewById(R.id.tabHost1);
@@ -510,18 +478,6 @@ public class MainActivity extends AppCompatActivity {
         };
         rullet_reset.setOnClickListener(rulletresetaction);
 
-        /*
-        Button btn_pic_load = (Button) findViewById(R.id.buttonLoadPic);
-        btn_pic_load.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-                galleryload();
-            }
-        });
-        */
 
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
@@ -531,12 +487,9 @@ public class MainActivity extends AppCompatActivity {
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
                     //galleryload();
+
                     File file = new File(basePath);
                     imgs = file.list();
-
-                    for(String path:imgs){
-                        Log.i("path",path);
-                    }
                     for(int i=0; i<imgs.length; i++){
                         imgPath.setText(imgs[i]);
                     }
@@ -549,10 +502,23 @@ public class MainActivity extends AppCompatActivity {
                     customGallery.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position]);
+                            Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position+1]);
+                            ExifInterface exif = null;
+                            try {
+                                exif = new ExifInterface(basePath+ File.separator + imgs[position+1] );
+                                int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                                int exifDegree = exifOrientationToDegrees(exifOrientation);
+                                bm= rotate(bm, exifDegree);
+                            } catch (IOException e) {
+                                Toast.makeText(getApplicationContext(), "로드 오류", Toast.LENGTH_SHORT).show();
+                                e.printStackTrace();
+                            }
+
+
+
                             Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
                             resultView.setImageBitmap(bm2);
-                            imgPath.setText(basePath+File.separator+imgs[position]);
+                            imgPath.setText(basePath+File.separator+imgs[position+1]);
                         }
                     });
 
