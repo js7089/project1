@@ -280,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                ImageView imgView = (ImageView) findViewById(R.id.imageView);
+                ImageView imgView = (ImageView) findViewById(R.id.resultview);
                 imgView.setImageBitmap(scaled);
 
             } else {
@@ -533,6 +533,10 @@ public class MainActivity extends AppCompatActivity {
                     //galleryload();
                     File file = new File(basePath);
                     imgs = file.list();
+
+                    for(String path:imgs){
+                        Log.i("path",path);
+                    }
                     for(int i=0; i<imgs.length; i++){
                         imgPath.setText(imgs[i]);
                     }
