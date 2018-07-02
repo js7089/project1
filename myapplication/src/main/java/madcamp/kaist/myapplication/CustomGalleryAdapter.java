@@ -17,6 +17,7 @@ import java.io.File;
 public class CustomGalleryAdapter extends BaseAdapter {
     int CustomGalleryItemBg; // 앞서 정의해 둔 attrs.xml의 resource를 background로 받아올 변수 선언
     String mBasePath; // CustomGalleryAdapter를 선언할 때 지정 경로를 받아오기 위한 변수
+    Context mContext; // CustomGalleryAdapter를 선언할 때 해당 activity의 context를 받아오기 위한 context 변수
     String[] mImgs; // 위 mBasePath내의 file list를 String 배열로 저장받을 변수
     Bitmap bm; // 지정 경로의 사진을 Bitmap으로 받아오기 위한 변수
 
