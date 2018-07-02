@@ -1,9 +1,12 @@
 package madcamp.kaist.myapplication;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
@@ -25,6 +28,7 @@ import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +39,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -89,6 +94,37 @@ public class MainActivity extends AppCompatActivity {
         }
         SimpleAdapter simpleAdapter = new SimpleAdapter(this,Data,android.R.layout.simple_list_item_2,new String[]{"name","pNo"},new int[]{android.R.id.text1,android.R.id.text2});
         listView.setAdapter(simpleAdapter);
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Toast.makeText(getApplicationContext(), Data.get(i).get("name"),LENGTH_SHORT ).show();
+                final Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setContentView(R.layout.multitab_tmp);
+                dialog.setTitle("Title");
+
+                EditText NameField = (EditText) dialog.findViewById(R.id.pName);
+                EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
+                NameField.setText(Data.get(i).get("name"));
+                pNoField.setText(Data.get(i).get("pNo"));
+
+
+                dialog.show();
+
+
+
+
+
+
+                //pNoField.setText("01013204019");
+
+
+
+
+
+
+                return false;
+            }
+        });
         phones.close();
     }
 
@@ -357,6 +393,8 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
 
         //
+
+
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // App.을 실행하자 마자 지정한 경로의 생성 및 접근에 용이하도록 아래와 같이 생성
@@ -510,16 +548,16 @@ public class MainActivity extends AppCompatActivity {
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String s) {
-                if(ts2.getTag().equals(s)){
+            if(ts1.getTag().equals(s)){
+                //DIALOG TEST
+
+                //
+            }else if(ts2.getTag().equals(s)){
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
                     //galleryload();
-
-
-
-
-                    //
+  //
                 } else if(ts3.getTag().equals(s)){
                     // 룰렛 초기 조건
                     // 숫자필드 둘, 시작버튼 하나 = 활성화&초기화
