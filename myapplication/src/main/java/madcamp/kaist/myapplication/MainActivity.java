@@ -4,10 +4,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Dialog;
+import android.content.ContentProviderOperation;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -22,6 +25,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -64,6 +68,7 @@ import static android.widget.Toast.LENGTH_SHORT;
 
 public class MainActivity extends AppCompatActivity {
 
+
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 1;
 
@@ -71,11 +76,18 @@ public class MainActivity extends AppCompatActivity {
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
     private int Nbullet, Npeople, victim;
+    Uri u;
+    ContentValues cv;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
     private ListView listView;
+
+    protected void updateContact() {
+        //update phone number
+        getContentResolver().update(u, cv, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + "=Anda", new String[]{"18585541315"});
+    }
 
     private void getContacts(){
         //데이터 초기화
@@ -96,29 +108,31 @@ public class MainActivity extends AppCompatActivity {
         listView.setAdapter(simpleAdapter);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
                 Toast.makeText(getApplicationContext(), Data.get(i).get("name"),LENGTH_SHORT ).show();
                 final Dialog dialog = new Dialog(MainActivity.this);
                 dialog.setContentView(R.layout.multitab_tmp);
                 dialog.setTitle("Title");
 
                 EditText NameField = (EditText) dialog.findViewById(R.id.pName);
+                Button Delete = (Button) dialog.findViewById(R.id.delete);
                 EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
+                Button Rewrite = (Button) dialog.findViewById(R.id.rewrite);
                 NameField.setText(Data.get(i).get("name"));
                 pNoField.setText(Data.get(i).get("pNo"));
 
 
+                Delete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Toast.makeText(getApplicationContext(), "지우기" + String.valueOf(i), Toast.LENGTH_SHORT).show();
+                        updateContact();
+                       //Data.remove(i);
+                    }
+                });
+
+
                 dialog.show();
-
-
-
-
-
-
-                //pNoField.setText("01013204019");
-
-
-
 
 
 
