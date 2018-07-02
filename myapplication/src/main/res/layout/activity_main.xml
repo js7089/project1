@@ -69,6 +69,7 @@
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="0.5"
+                                    android:visibility="invisible"
                                     android:text="TextView" />
 
                                 <Button
@@ -84,32 +85,44 @@
 
                             <TableRow
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent">
+                                android:layout_height="match_parent"
+                                android:gravity="center_horizontal">
+
                                 <Gallery
                                     android:id="@+id/customgallery"
-                                    android:layout_width="wrap_content"
+                                    android:gravity="center_horizontal"
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    >
-                                </Gallery>
+                                    android:layout_weight="1"
+
+                                    />
 
                             </TableRow>
+
                             <TableRow
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent">
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center_horizontal"
+                                android:layout_weight="0.95"
+                                >
+
                                 <ImageView
                                     android:id="@+id/resultview"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:layout_margin="10dp"
-                                    android:layout_gravity="center_horizontal"
-                                    android:layout_below="@id/customgallery" />
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_below="@id/customgallery"
+                                    android:layout_gravity="center_vertical"
+                                    android:layout_weight="0.9"
+                                    android:layout_marginBottom="10dp"
+
+                                    />
 
 
                             </TableRow>
 
+              </TableLayout>
 
 
-                        </TableLayout>
 
                     </LinearLayout>
                     <LinearLayout

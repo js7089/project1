@@ -31,31 +31,34 @@
 
 
         </TableRow>
+
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            >
+
             <Gallery
                 android:id="@+id/customgallery"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
-            </Gallery>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"></Gallery>
 
         </TableRow>
+
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
+
             <ImageView
                 android:id="@+id/resultview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_below="@id/customgallery" />
+                android:layout_below="@id/customgallery"
+                android:gravity="center_horizontal"
+                android:layout_margin="10dp" />
 
 
         </TableRow>
-
 
 
     </TableLayout>

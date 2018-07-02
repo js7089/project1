@@ -59,8 +59,9 @@ import static android.widget.Toast.LENGTH_SHORT;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 1;
 
-    private static final int PICKFILE_REQUEST_CODE = 8777;
     // Local Variables for part 3
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
@@ -287,17 +288,38 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void galleryload(){
-        /*
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT); //ACTION_PIC과 차이점?
-        intent.setType("image/*"); //이미지만 보이게
-        //Intent 시작 - 갤러리앱을 열어서 원하는 이미지를 선택할 수 있다.
-        startActivityForResult(intent, );//
-        //Intent.createChooser(intent, "Select Picture")
-        */
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-        startActivityForResult(intent, PICKFILE_REQUEST_CODE);
+        File file = new File(basePath);
+        imgs = file.list();
+        for(int i=0; i<imgs.length; i++){
+            imgPath.setText(imgs[i]);
+        }
+
+
+        customGallery = (Gallery)findViewById(R.id.customgallery); // activity_main.xml에서 선언한 Gallery를 연결
+        customGalAdapter = new CustomGalleryAdapter(getApplicationContext(), basePath); // 위 Gallery에 대한 Adapter를 선언
+        customGallery.setAdapter(customGalAdapter); // Gallery에 위 Adapter를 연결
+        // Gallery의 Item을 Click할 경우 ImageView에 보여주도록 함
+        customGallery.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position+1]);
+                ExifInterface exif = null;
+                try {
+                    exif = new ExifInterface(basePath+ File.separator + imgs[position+1] );
+                    int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+                    int exifDegree = exifOrientationToDegrees(exifOrientation);
+                    bm= rotate(bm, exifDegree);
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "로드 오류", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+                Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
+                resultView.setImageBitmap(bm2);
+                imgPath.setText(basePath+File.separator+imgs[position+1]);
+            }
+        });
+
 
     }
 
@@ -329,6 +351,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
+        // 권한 요구
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_CONTACTS}, MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+
+        //
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // App.을 실행하자 마자 지정한 경로의 생성 및 접근에 용이하도록 아래와 같이 생성
@@ -353,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
         Resources res = getResources();
 
         View.OnClickListener load_btn_action = new View.OnClickListener(){
-            public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
+
 
             @Override
             public void onClick(View view) {
@@ -372,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         album_load.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-
+                galleryload();
             }
         });
 
@@ -488,39 +516,6 @@ public class MainActivity extends AppCompatActivity {
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
                     //galleryload();
 
-                    File file = new File(basePath);
-                    imgs = file.list();
-                    for(int i=0; i<imgs.length; i++){
-                        imgPath.setText(imgs[i]);
-                    }
-                    Toast.makeText(getApplicationContext(),basePath,LENGTH_LONG).show();
-
-                    customGallery = (Gallery)findViewById(R.id.customgallery); // activity_main.xml에서 선언한 Gallery를 연결
-                    customGalAdapter = new CustomGalleryAdapter(getApplicationContext(), basePath); // 위 Gallery에 대한 Adapter를 선언
-                    customGallery.setAdapter(customGalAdapter); // Gallery에 위 Adapter를 연결
-                    // Gallery의 Item을 Click할 경우 ImageView에 보여주도록 함
-                    customGallery.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                            Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position+1]);
-                            ExifInterface exif = null;
-                            try {
-                                exif = new ExifInterface(basePath+ File.separator + imgs[position+1] );
-                                int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-                                int exifDegree = exifOrientationToDegrees(exifOrientation);
-                                bm= rotate(bm, exifDegree);
-                            } catch (IOException e) {
-                                Toast.makeText(getApplicationContext(), "로드 오류", Toast.LENGTH_SHORT).show();
-                                e.printStackTrace();
-                            }
-
-
-
-                            Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
-                            resultView.setImageBitmap(bm2);
-                            imgPath.setText(basePath+File.separator+imgs[position+1]);
-                        }
-                    });
 
 
 
