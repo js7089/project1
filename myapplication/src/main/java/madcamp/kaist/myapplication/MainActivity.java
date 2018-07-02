@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -81,18 +82,110 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
-    private ArrayList<HashMap<String,String>> Data = new ArrayList<HashMap<String, String>>();
+    private ArrayList<HashMap<String,String>> Data2 = new ArrayList<HashMap<String, String>>();
     private ListView listView;
 
-    protected void updateContact() {
+
+    public static boolean deleteContact(Context ctx, String phone, String name) {
+        Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone));
+        Cursor cur = ctx.getContentResolver().query(contactUri, null, null, null, null);
+        try {
+            if (cur.moveToFirst()) {
+                do {
+                    if (cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)).equalsIgnoreCase(name)) {
+                        String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+                        ctx.getContentResolver().delete(uri, null, null);
+                        return true;
+                    }
+
+                } while (cur.moveToNext());
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
+        } finally {
+            cur.close();
+        }
+        return false;
+    }
+
+
+    public boolean updateContact(Context ctx, String fromphone, String fromname, String tophone, String toname) {
+        Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(fromphone));
+        Cursor cur = ctx.getContentResolver().query(contactUri, null, null, null, null);
+        try {
+            if (cur.moveToFirst()) {
+                do {
+                    if (cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)).equalsIgnoreCase(fromname)) {
+                        // deletion part
+                        String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+                        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+                        getContentResolver().delete(uri,null,null);
+
+                        // insert part
+                        ArrayList < ContentProviderOperation > ops = new ArrayList < ContentProviderOperation > ();
+
+                        ops.add(ContentProviderOperation.newInsert(
+                                ContactsContract.RawContacts.CONTENT_URI)
+                                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                                .build());
+
+                        if (tophone!= null) {
+                            ops.add(ContentProviderOperation.
+                                    newInsert(ContactsContract.Data.CONTENT_URI)
+                                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                                    .withValue(ContactsContract.Data.MIMETYPE,
+                                            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, tophone)
+                                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
+                                            ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                                    .build());
+                        }
+                        if (toname != null) {
+                            ops.add(ContentProviderOperation.newInsert(
+                                    ContactsContract.Data.CONTENT_URI)
+                                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                                    .withValue(ContactsContract.Data.MIMETYPE,
+                                            ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                                    .withValue(
+                                            ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
+                                            toname).build());
+                        }
+                        getContentResolver().applyBatch(ContactsContract.AUTHORITY,ops);
+
+                        getContacts();
+                        return true;
+                    }
+
+                } while (cur.moveToNext());
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
+        } finally {
+            cur.close();
+        }
+        return false;
+    }
+
+
+    protected void clearContact() {
         //update phone number
-        getContentResolver().update(u, cv, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + "=Anda", new String[]{"18585541315"});
+        ContentResolver contentResolver = MainActivity.this.getContentResolver();
+        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        while (cursor.moveToNext()) {
+            String lookupKey = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
+            Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
+            contentResolver.delete(uri, null, null);
+        }
     }
 
     private void getContacts(){
         //데이터 초기화
         listView =   (ListView) findViewById(R.id.mylist);
-        Data.clear();
+        Data2.clear();
         Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
         while (phones.moveToNext())
         {
@@ -102,38 +195,47 @@ public class MainActivity extends AppCompatActivity {
 
             element.put("name",name);
             element.put("pNo",phoneNumber);
-            Data.add(element);
+            Data2.add(element);
         }
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this,Data,android.R.layout.simple_list_item_2,new String[]{"name","pNo"},new int[]{android.R.id.text1,android.R.id.text2});
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this,Data2,android.R.layout.simple_list_item_2,new String[]{"name","pNo"},new int[]{android.R.id.text1,android.R.id.text2});
         listView.setAdapter(simpleAdapter);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                Toast.makeText(getApplicationContext(), Data.get(i).get("name"),LENGTH_SHORT ).show();
+                Toast.makeText(getApplicationContext(), Data2.get(i).get("name"),LENGTH_SHORT ).show();
                 final Dialog dialog = new Dialog(MainActivity.this);
                 dialog.setContentView(R.layout.multitab_tmp);
                 dialog.setTitle("Title");
 
-                EditText NameField = (EditText) dialog.findViewById(R.id.pName);
+                final EditText NameField = (EditText) dialog.findViewById(R.id.pName);
                 Button Delete = (Button) dialog.findViewById(R.id.delete);
-                EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
+                final EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
                 Button Rewrite = (Button) dialog.findViewById(R.id.rewrite);
-                NameField.setText(Data.get(i).get("name"));
-                pNoField.setText(Data.get(i).get("pNo"));
+                NameField.setText(Data2.get(i).get("name"));
+                pNoField.setText(Data2.get(i).get("pNo"));
 
 
                 Delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        Toast.makeText(getApplicationContext(), "지우기" + String.valueOf(i), Toast.LENGTH_SHORT).show();
-                        updateContact();
-                       //Data.remove(i);
+                        //Toast.makeText(getApplicationContext(), "지우기" + String.valueOf(i), Toast.LENGTH_SHORT).show();
+                        deleteContact(getApplicationContext(),Data2.get(i).get("pNo"),Data2.get(i).get("name"));
+                        Data2.remove(i);
+                        dialog.dismiss();
+                        getContacts();
                     }
                 });
-
-
                 dialog.show();
 
+                Rewrite.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        updateContact(getApplicationContext(),Data2.get(i).get("pNo"),Data2.get(i).get("name"),
+                                pNoField.getText().toString(),NameField.getText().toString());
+                        Toast.makeText(getApplicationContext(),"연락처 수정 완료.",LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                });
 
 
                 return false;
@@ -564,7 +666,7 @@ public class MainActivity extends AppCompatActivity {
             public void onTabChanged(String s) {
             if(ts1.getTag().equals(s)){
                 //DIALOG TEST
-
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_CONTACTS}, MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
                 //
             }else if(ts2.getTag().equals(s)){
                     ActivityCompat.requestPermissions(MainActivity.this,

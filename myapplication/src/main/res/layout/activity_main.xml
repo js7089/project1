@@ -41,7 +41,9 @@
                         <ListView
                             android:id="@+id/mylist"
                             android:layout_width="match_parent"
-                            android:layout_height="400dp" />
+                            android:layout_height="400dp"
+                            android:scrollbars="vertical"
+                            />
                         <Button
                             android:id="@+id/load_pno"
                             android:layout_width="wrap_content"
