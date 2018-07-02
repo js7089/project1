@@ -60,8 +60,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.6"
                 android:ems="10"
-                android:inputType="textPersonName"
-                android:text="Name" />
+                android:hint="이름"
+                android:inputType="textPersonName" />
             <TextView
                 android:id="@+id/none3"
                 android:layout_width="0dp"
@@ -92,9 +92,10 @@
             <EditText
                 android:id="@+id/pNo"
                 android:layout_width="0dp"
-                android:layout_weight="0.6"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.6"
                 android:ems="10"
+                android:hint="연락처"
                 android:inputType="phone" />
             <TextView
                 android:id="@+id/none4"

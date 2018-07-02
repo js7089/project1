@@ -1,50 +1,38 @@
 package madcamp.kaist.myapplication;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
-import android.media.Image;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.RemoteException;
+import android.os.Vibrator;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -52,16 +40,12 @@ import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.ViewGroup;
-
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -74,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 1;
 
     // Local Variables for part 3
+    Vibrator v;
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
     private int Nbullet, Npeople, victim;
@@ -84,7 +69,47 @@ public class MainActivity extends AppCompatActivity {
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data2 = new ArrayList<HashMap<String, String>>();
     private ListView listView;
+    private String basePath;
 
+    public void insertContact(Context ctx, String tophone, String toname){
+        try {
+            // insert part
+            ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+
+            ops.add(ContentProviderOperation.newInsert(
+                    ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                    .build());
+
+            if (tophone != null) {
+                ops.add(ContentProviderOperation.
+                        newInsert(ContactsContract.Data.CONTENT_URI)
+                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                        .withValue(ContactsContract.Data.MIMETYPE,
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, tophone)
+                        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
+                                ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                        .build());
+            }
+            if (toname != null) {
+                ops.add(ContentProviderOperation.newInsert(
+                        ContactsContract.Data.CONTENT_URI)
+                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                        .withValue(ContactsContract.Data.MIMETYPE,
+                                ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                        .withValue(
+                                ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
+                                toname).build());
+            }
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+            getContacts();
+        }
+        catch (Exception e){
+            System.out.println(e.getStackTrace());
+        }
+    }
 
     public static boolean deleteContact(Context ctx, String phone, String name) {
         Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phone));
@@ -110,66 +135,12 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-
     public boolean updateContact(Context ctx, String fromphone, String fromname, String tophone, String toname) {
-        Uri contactUri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(fromphone));
-        Cursor cur = ctx.getContentResolver().query(contactUri, null, null, null, null);
-        try {
-            if (cur.moveToFirst()) {
-                do {
-                    if (cur.getString(cur.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME)).equalsIgnoreCase(fromname)) {
-                        // deletion part
-                        String lookupKey = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY));
-                        Uri uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_LOOKUP_URI, lookupKey);
-                        getContentResolver().delete(uri,null,null);
-
-                        // insert part
-                        ArrayList < ContentProviderOperation > ops = new ArrayList < ContentProviderOperation > ();
-
-                        ops.add(ContentProviderOperation.newInsert(
-                                ContactsContract.RawContacts.CONTENT_URI)
-                                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-                                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
-                                .build());
-
-                        if (tophone!= null) {
-                            ops.add(ContentProviderOperation.
-                                    newInsert(ContactsContract.Data.CONTENT_URI)
-                                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                                    .withValue(ContactsContract.Data.MIMETYPE,
-                                            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, tophone)
-                                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
-                                            ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
-                                    .build());
-                        }
-                        if (toname != null) {
-                            ops.add(ContentProviderOperation.newInsert(
-                                    ContactsContract.Data.CONTENT_URI)
-                                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                                    .withValue(ContactsContract.Data.MIMETYPE,
-                                            ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                                    .withValue(
-                                            ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME,
-                                            toname).build());
-                        }
-                        getContentResolver().applyBatch(ContactsContract.AUTHORITY,ops);
-
-                        getContacts();
-                        return true;
-                    }
-
-                } while (cur.moveToNext());
-            }
-
-        } catch (Exception e) {
-            System.out.println(e.getStackTrace());
-        } finally {
-            cur.close();
-        }
-        return false;
+        deleteContact(ctx,fromphone,fromname);
+        insertContact(ctx,tophone,toname);
+        getContacts();
+        return true;
     }
-
 
     protected void clearContact() {
         //update phone number
@@ -199,26 +170,26 @@ public class MainActivity extends AppCompatActivity {
         }
         SimpleAdapter simpleAdapter = new SimpleAdapter(this,Data2,android.R.layout.simple_list_item_2,new String[]{"name","pNo"},new int[]{android.R.id.text1,android.R.id.text2});
         listView.setAdapter(simpleAdapter);
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                Toast.makeText(getApplicationContext(), Data2.get(i).get("name"),LENGTH_SHORT ).show();
+            public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+                v.vibrate(40);
                 final Dialog dialog = new Dialog(MainActivity.this);
                 dialog.setContentView(R.layout.multitab_tmp);
                 dialog.setTitle("Title");
 
                 final EditText NameField = (EditText) dialog.findViewById(R.id.pName);
-                Button Delete = (Button) dialog.findViewById(R.id.delete);
                 final EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
-                Button Rewrite = (Button) dialog.findViewById(R.id.rewrite);
                 NameField.setText(Data2.get(i).get("name"));
                 pNoField.setText(Data2.get(i).get("pNo"));
-
+                Button Rewrite = (Button) dialog.findViewById(R.id.rewrite);
+                Button Delete = (Button) dialog.findViewById(R.id.delete);
 
                 Delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //Toast.makeText(getApplicationContext(), "지우기" + String.valueOf(i), Toast.LENGTH_SHORT).show();
+                        v.vibrate(40);
                         deleteContact(getApplicationContext(),Data2.get(i).get("pNo"),Data2.get(i).get("name"));
                         Data2.remove(i);
                         dialog.dismiss();
@@ -230,15 +201,17 @@ public class MainActivity extends AppCompatActivity {
                 Rewrite.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view) {
+                        v.vibrate(40);
+                        if(pNoField.getText().toString().equals("") || NameField.getText().toString().equals("")){
+                            Toast.makeText(getApplicationContext(),"빈 칸을 모두 입력해 주세요!",LENGTH_SHORT).show();
+                            return;
+                        }
                         updateContact(getApplicationContext(),Data2.get(i).get("pNo"),Data2.get(i).get("name"),
                                 pNoField.getText().toString(),NameField.getText().toString());
                         Toast.makeText(getApplicationContext(),"연락처 수정 완료.",LENGTH_SHORT).show();
                         dialog.dismiss();
                     }
                 });
-
-
-                return false;
             }
         });
         phones.close();
@@ -445,8 +418,6 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0; i<imgs.length; i++){
             imgPath.setText(imgs[i]);
         }
-
-
         customGallery = (Gallery)findViewById(R.id.customgallery); // activity_main.xml에서 선언한 Gallery를 연결
         customGalAdapter = new CustomGalleryAdapter(getApplicationContext(), basePath); // 위 Gallery에 대한 Adapter를 선언
         customGallery.setAdapter(customGalAdapter); // Gallery에 위 Adapter를 연결
@@ -471,74 +442,37 @@ public class MainActivity extends AppCompatActivity {
                 imgPath.setText(basePath+File.separator+imgs[position+1]);
             }
         });
-
-
     }
-
-
     // 갤러리 로드
-    public static final int MEDIA_TYPE_IMAGE = 1;
-    public static final int MEDIA_TYPE_VIDEO = 2;
     public int inSampleSize = 1;
-
-    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-    private Uri fileUri;
-    private static String basePath;
-
-    public float imageViewRotation = 90;
-    public String TAG = "Camera Example :: ";
-
-    private Button takePicBtn;
     private ImageView resultView;
     private TextView imgPath;
     private Gallery customGallery;
     private CustomGalleryAdapter customGalAdapter;
-
     private String[] imgs;
     //
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         // 권한 요구
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_CONTACTS}, MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
 
-        //
-
+        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        // App.을 실행하자 마자 지정한 경로의 생성 및 접근에 용이하도록 아래와 같이 생성
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
-        if (! mediaStorageDir.exists()){
-            if (! mediaStorageDir.mkdirs()){
-                Log.d("MyCameraApp", "failed to create directory");
-//                return null;
-            }
-        }
 
         basePath = "/storage/emulated/0/DCIM/CAMERA";
 
         imgPath = (TextView)findViewById(R.id.imgpath);
         resultView = (ImageView)findViewById(R.id.resultview);
 
-        Resources res = getResources();
-
         View.OnClickListener load_btn_action = new View.OnClickListener(){
-
-
             @Override
             public void onClick(View view) {
+                v.vibrate(40);
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
                 try{
                     getContacts();
@@ -554,10 +488,44 @@ public class MainActivity extends AppCompatActivity {
         album_load.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
+                v.vibrate(40);
                 galleryload();
             }
         });
 
+        // 새 연락처 버튼
+        Button newcontact_btn = (Button) findViewById(R.id.new_pno);
+        newcontact_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_CONTACTS}, MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
+                final Dialog dialog = new Dialog(MainActivity.this);
+                dialog.setContentView(R.layout.multitab_tmp);
+                dialog.setTitle("Title");
+
+                final EditText NameField = (EditText) dialog.findViewById(R.id.pName);
+                final EditText pNoField = (EditText) dialog.findViewById(R.id.pNo);
+                Button Rewrite = (Button) dialog.findViewById(R.id.rewrite);
+                Button Delete = (Button) dialog.findViewById(R.id.delete);
+
+                Rewrite.setText("등록");
+                Delete.setVisibility(View.INVISIBLE);
+                Delete.setEnabled(false);
+                Rewrite.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        v.vibrate(40);
+                        if(pNoField.getText().toString().equals("") || NameField.getText().toString().equals("")){
+                            Toast.makeText(getApplicationContext(),"빈 칸을 모두 입력해 주세요!",LENGTH_SHORT).show();
+                            return;
+                        }
+                        insertContact(getApplicationContext(),pNoField.getText().toString(),NameField.getText().toString());
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+            }
+        });
 
 
 
@@ -589,7 +557,6 @@ public class MainActivity extends AppCompatActivity {
         final ImageView rulletkilled = (ImageView) findViewById(R.id.imgkilled);
         final TextView contextview = (TextView) findViewById(R.id.rullet_context);
 
-
         // rullet start 버튼 리스너
         View.OnClickListener rulletstartaction = new View.OnClickListener() {
             @Override
@@ -609,12 +576,12 @@ public class MainActivity extends AppCompatActivity {
                     rullet_start.setEnabled(false);
                     rullet_shoot.setEnabled(true);
                     rullet_reset.setEnabled(true);
+                    rullet_reset.setVisibility(View.VISIBLE);
                     turns = 0;
                     set.clear();
                     while(set.size()<Nbullet){
                         set.add( (int) Math.floor((Math.random()*Npeople))  +1);
                     }
-
                 }
             }
         };
@@ -626,10 +593,12 @@ public class MainActivity extends AppCompatActivity {
                 turns+=1;
                 if(set.contains(turns)){
                     Toast.makeText(getApplicationContext(),"탕탕탕탕탕탕탕!", LENGTH_SHORT).show();
+                    v.vibrate(600);
                     rulletkilled.setVisibility(View.VISIBLE);
                     victim +=1;
                 }
                 else{
+                    v.vibrate(70);
                     rulletkilled.setVisibility(View.INVISIBLE);
                 }
                 contextview.setText("남은 인원 수 : " + String.valueOf(Npeople-turns) + " / 남은 총알 수 : " + String.valueOf(Nbullet-victim));
@@ -644,6 +613,7 @@ public class MainActivity extends AppCompatActivity {
         View.OnClickListener rulletresetaction = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                v.vibrate(40);
                 rullet_shoot.setVisibility(View.INVISIBLE);
                 rullet_reset.setVisibility(View.INVISIBLE);
                 numofpeople.setText("");
@@ -664,11 +634,14 @@ public class MainActivity extends AppCompatActivity {
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String s) {
+                v.vibrate(40);
             if(ts1.getTag().equals(s)){
                 //DIALOG TEST
+                hideKeyboard(MainActivity.this);
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_CONTACTS}, MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
                 //
             }else if(ts2.getTag().equals(s)){
+                hideKeyboard(MainActivity.this);
                     ActivityCompat.requestPermissions(MainActivity.this,
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                             MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
@@ -691,9 +664,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
 
-
-
+    public static void hideKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        //Find the currently focused view, so we can grab the correct window token from it.
+        View view = activity.getCurrentFocus();
+        //If no view currently has focus, create a new one, just so we can grab a window token from it
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 }
