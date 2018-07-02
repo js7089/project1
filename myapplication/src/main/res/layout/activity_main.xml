@@ -40,30 +40,26 @@
 
                     <TableLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        tools:layout_editor_absoluteX="0dp"
+                        tools:layout_editor_absoluteY="16dp">
 
                         <TableRow
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent" >
+                            android:layout_height="match_parent">
 
                             <ListView
                                 android:id="@+id/mylist"
                                 android:layout_width="match_parent"
-                                android:layout_height="400dp"
+                                android:layout_height="500dp"
                                 android:layout_weight="1"
                                 android:scrollbars="vertical" />
                         </TableRow>
 
                         <TableRow
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent" >
-
-                            <TextView
-                                android:text=" "
-                                android:id="@+id/nullspace"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.1" />
+                            android:layout_height="wrap_content"
+                            >
 
                             <Button
                                 android:id="@+id/new_pno"
@@ -72,26 +68,12 @@
                                 android:layout_weight="0.35"
                                 android:text="새 연락처" />
 
-                            <TextView
-                                android:text=" "
-                                android:id="@+id/nullspace2"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.1" />
-
                             <Button
                                 android:id="@+id/load_pno"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="0.35"
                                 android:text="연락처 가져오기" />
-
-                            <TextView
-                                android:text=" "
-                                android:id="@+id/nullspace3"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="0.1" />
 
                         </TableRow>
                     </TableLayout>
