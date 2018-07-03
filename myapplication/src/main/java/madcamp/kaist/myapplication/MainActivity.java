@@ -28,6 +28,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -40,6 +41,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,14 +65,22 @@ public class MainActivity extends AppCompatActivity {
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
     private int Nbullet, Npeople, victim;
-    Uri u;
-    ContentValues cv;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data2 = new ArrayList<HashMap<String, String>>();
     private ListView listView;
     private String basePath;
+
+    private String toJSON(){
+        String AC = "";
+
+            JSONObject j = new JSONObject(Data2.get(idx));
+            AC += j.toString();
+        }
+        return "["+ AC.toString() + "]";
+    }
+
 
     public void insertContact(Context ctx, String tophone, String toname){
         try {
@@ -215,6 +226,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         phones.close();
+
+        Log.i("JSONTEST",toJSON());
+        //
     }
 
     // Part2
@@ -483,6 +497,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+
+
+
+
         // 앨범 로드 버튼
         Button album_load = (Button) findViewById(R.id.load_album);
         album_load.setOnClickListener(new View.OnClickListener(){
@@ -676,5 +694,7 @@ public class MainActivity extends AppCompatActivity {
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+
+
 
 }
