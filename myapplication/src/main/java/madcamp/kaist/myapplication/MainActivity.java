@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.MediaScannerConnection;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
@@ -42,8 +43,6 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,30 +57,22 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
-    private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 4;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 23;
 
     // Local Variables for part 3
     Vibrator v;
     private Set<Integer> set = new HashSet<>();
     private int turns = 0;
     private int Nbullet, Npeople, victim;
+    Uri u;
+    ContentValues cv;
 
     private static final int PICK_IMAGE_REQUEST = 1;
     // Local Variables for part 1
     private ArrayList<HashMap<String,String>> Data2 = new ArrayList<HashMap<String, String>>();
     private ListView listView;
     private String basePath;
-
-    private String toJSON(){
-        String AC = "";
-
-        for(int idx=0; idx<Data2.size(); idx++){
-            JSONObject j = new JSONObject(Data2.get(idx));
-            AC += j.toString();
-        }
-        return "["+ AC.toString() + "]";
-    }
-
 
     public void insertContact(Context ctx, String tophone, String toname){
         try {
@@ -227,9 +218,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         phones.close();
-
-        Log.i("JSONTEST",toJSON());
-        //
     }
 
     // Part2
@@ -387,59 +375,20 @@ public class MainActivity extends AppCompatActivity {
                 src.getHeight(), matrix, true);
     }
 
-    //이미지 선택작업을 후의 결과 처리
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        try {
-            //이미지를 하나 골랐을때
-            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && null != data) {
-                //data에서 절대경로로 이미지를 가져옴
-
-                Uri uri = data.getData();
-                String path_abs = getPath(getApplicationContext(),uri);
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
-                //
-                ExifInterface exif = new ExifInterface(path_abs);
-                int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-                //Toast.makeText(getApplicationContext(),valueOf(exifOrientationToDegrees(exifOrientation)),Toast.LENGTH_LONG);
-                int exifDegree = exifOrientationToDegrees(exifOrientation);
-                bitmap= rotate(bitmap, exifDegree);
-                //
-
-                //이미지가 한계이상(?) 크면 불러 오지 못하므로 사이즈를 줄여 준다.
-                int nh = (int) (bitmap.getHeight() * (1024.0 / bitmap.getWidth()));
-                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 1024, nh, true);
-
-
-
-                ImageView imgView = (ImageView) findViewById(R.id.resultview);
-                imgView.setImageBitmap(scaled);
-
-            } else {
-                Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_LONG).show();
-            }
-
-        } catch (Exception e) {
-            Toast.makeText(this, "권한이 필요합니다.", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-
-    }
     private void galleryload(){
         File file = new File(basePath);
         imgs = file.list();
         for(int i=0; i<imgs.length; i++){
             imgPath.setText(imgs[i]);
         }
+
         customGallery = (Gallery)findViewById(R.id.customgallery); // activity_main.xml에서 선언한 Gallery를 연결
         customGalAdapter = new CustomGalleryAdapter(getApplicationContext(), basePath); // 위 Gallery에 대한 Adapter를 선언
         customGallery.setAdapter(customGalAdapter); // Gallery에 위 Adapter를 연결
         // Gallery의 Item을 Click할 경우 ImageView에 보여주도록 함
         customGallery.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
                 Bitmap bm = BitmapFactory.decodeFile(basePath+ File.separator +imgs[position+1]);
                 ExifInterface exif = null;
                 try {
@@ -452,12 +401,56 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
+                final Bitmap bm2 = ThumbnailUtils.extractThumbnail(bm, bm.getWidth() / inSampleSize, bm.getHeight() / inSampleSize);
                 resultView.setImageBitmap(bm2);
                 imgPath.setText(basePath+File.separator+imgs[position+1]);
+                resultView.setVisibility(View.VISIBLE);
+
+                resultView.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        final Dialog dialog1 = new Dialog(MainActivity.this);
+                        dialog1.setContentView(R.layout.gallery_dia);
+                        dialog1.setTitle("Title");
+
+                        Button IDelete = (Button) dialog1.findViewById(R.id.idelete);
+
+                        IDelete.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Uri target = getUriFromPath(basePath+File.separator+imgs[position+1]);
+                                getContentResolver().delete(target,null,null);
+                                galleryload();
+                                resultView.setVisibility(View.INVISIBLE);
+                                dialog1.dismiss();
+
+                            }
+                        });
+                        dialog1.show();
+                    }
+                });
+
+
             }
         });
+
+
+
+        //
+
     }
+
+    public Uri getUriFromPath(String path){
+        Uri fileUri = Uri.parse( path );
+        String filePath = fileUri.getPath();
+        Cursor c = getContentResolver().query( MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null, "_data = '" + filePath + "'", null, null );
+        c.moveToNext();
+        int id = c.getInt( c.getColumnIndex( "_id" ) );
+        Uri uri = ContentUris.withAppendedId( MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id );
+
+        return uri;
+    }
+
     // 갤러리 로드
     public int inSampleSize = 1;
     private ImageView resultView;
@@ -474,7 +467,7 @@ public class MainActivity extends AppCompatActivity {
         // 권한 요구
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -498,10 +491,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-
-
-
-
         // 앨범 로드 버튼
         Button album_load = (Button) findViewById(R.id.load_album);
         album_load.setOnClickListener(new View.OnClickListener(){
@@ -695,7 +684,5 @@ public class MainActivity extends AppCompatActivity {
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
-
-
 
 }

@@ -91,7 +91,7 @@ public class CustomGalleryAdapter extends BaseAdapter {
 
         int width = options.outWidth;
         int height = options.outHeight;
-        int inSampleSize = 1;
+        int inSampleSize = 50;
         int reqWidth = 256;
         int reqHeight = 192;
         if((width > reqWidth) || (height > reqHeight)){
