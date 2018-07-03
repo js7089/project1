@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private String toJSON(){
         String AC = "";
 
+        for(int idx=0; idx<Data2.size(); idx++){
             JSONObject j = new JSONObject(Data2.get(idx));
             AC += j.toString();
         }
