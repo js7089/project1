@@ -15,8 +15,11 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.AudioManager;
 import android.media.ExifInterface;
+import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
+import android.media.SoundPool;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<HashMap<String,String>> Data2 = new ArrayList<HashMap<String, String>>();
     private ListView listView;
     private String basePath;
+
 
     public void insertContact(Context ctx, String tophone, String toname){
         try {
@@ -472,6 +476,10 @@ public class MainActivity extends AppCompatActivity {
 
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        final SoundPool sp = new SoundPool(2, AudioManager.STREAM_MUSIC,0);
+        final int reload = sp.load(this,R.raw.reload, 1);
+        final int shoot = sp.load(this, R.raw.shoot, 2);
+
         basePath = "/storage/emulated/0/DCIM/CAMERA";
 
         imgPath = (TextView)findViewById(R.id.imgpath);
@@ -604,10 +612,12 @@ public class MainActivity extends AppCompatActivity {
                     v.vibrate(600);
                     rulletkilled.setVisibility(View.VISIBLE);
                     victim +=1;
+                    int streamId = sp.play(shoot, 1.0F, 1.0F,  2,  0,  1.0F);
                 }
                 else{
                     v.vibrate(70);
                     rulletkilled.setVisibility(View.INVISIBLE);
+                    int streamId2 = sp.play(reload, 1.0F, 1.0F,  1,  0,  1.0F);
                 }
                 contextview.setText("남은 인원 수 : " + String.valueOf(Npeople-turns) + " / 남은 총알 수 : " + String.valueOf(Nbullet-victim));
                 if(Nbullet == victim){
