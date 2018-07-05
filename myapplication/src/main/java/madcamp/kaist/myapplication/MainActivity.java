@@ -33,8 +33,6 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -543,26 +541,6 @@ public class MainActivity extends AppCompatActivity {
                 Rewrite.setText("등록");
                 Delete.setVisibility(View.INVISIBLE);
                 Delete.setEnabled(false);
-
-                pNoField.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable text) {
-                        if (text.length() == 3 || text.length() == 8) {
-                            text.append('-');
-                        }
-                    }
-                });
-
                 Rewrite.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View view) {
