@@ -582,19 +582,31 @@ public class MainActivity extends AppCompatActivity {
 
 
         // 레거시
+
+        ImageView tabwidget01 = new ImageView(this);
+        tabwidget01.setImageResource(R.drawable.menu1);
+        ImageView tabwidget02 = new ImageView(this);
+        tabwidget02.setImageResource(R.drawable.menu2);
+        ImageView tabwidget03 = new ImageView(this);
+        tabwidget03.setImageResource(R.drawable.menu3);
+
         final TabHost tabHost = (TabHost) findViewById(R.id.tabHost1);
         tabHost.setup();
         final TabHost.TabSpec ts1 = tabHost.newTabSpec("TabSpec") ;
         ts1.setContent(R.id.content1) ;
-        ts1.setIndicator("전화번호부") ;
+        ts1.setIndicator(tabwidget01);
+
+        //ts1.setIndicator("전화번호부") ;
         tabHost.addTab(ts1);
         final TabHost.TabSpec ts2 = tabHost.newTabSpec("TabSpec2") ;
         ts2.setContent(R.id.content2) ;
-        ts2.setIndicator("갤러리") ;
+        //ts2.setIndicator("갤러리") ;
+        ts2.setIndicator(tabwidget02);
         tabHost.addTab(ts2);
         final TabHost.TabSpec ts3 = tabHost.newTabSpec("TabSpec3") ;
         ts3.setContent(R.id.content3) ;
-        ts3.setIndicator("러시안 룰렛");
+        //ts3.setIndicator("러시안 룰렛");
+        ts3.setIndicator(tabwidget03);
         tabHost.addTab(ts3);
         tabHost.setCurrentTab(0);
 
@@ -603,7 +615,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Button rullet_start = (Button) findViewById(R.id.btnstart);
         final ImageView rullet_shoot = (ImageView) findViewById(R.id.btnshoot);
-        final Button rullet_reset = (Button) findViewById(R.id.btnreset);
+        final ImageView rullet_reset = (ImageView) findViewById(R.id.btnreset);
         final EditText numofbullets = (EditText) findViewById(R.id.numofbullets);
         final EditText numofpeople = (EditText) findViewById(R.id.numofpeople);
         final ImageView rulletkilled = (ImageView) findViewById(R.id.imgkilled);

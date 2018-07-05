@@ -1,14 +1,14 @@
 package madcamp.kaist.myapplication;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.RequiresApi;
-import android.widget.ImageView;
+        import android.app.Activity;
+        import android.content.Intent;
+        import android.os.Build;
+        import android.os.Bundle;
+        import android.os.Handler;
+        import android.support.annotation.RequiresApi;
+        import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
+        import com.bumptech.glide.Glide;
 
 
 public class TitleScreenActivity extends Activity {
