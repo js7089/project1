@@ -24,6 +24,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.ContactsContract;
 import android.provider.DocumentsContract;
@@ -33,6 +34,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 4;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 23;
+    private final int SPLASH_DISPLAY_LENGTH = 1000;
 
     // Local Variables for part 3
     Vibrator v;
@@ -465,8 +468,13 @@ public class MainActivity extends AppCompatActivity {
     //
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
 
         // 권한 요구
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
